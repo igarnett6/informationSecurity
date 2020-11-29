@@ -1,0 +1,36 @@
+'''case 1 is a security test attempting to override the writeat function of the reference
+monitor to allow the original file to be directly modified
+and invalid text to be saved.'''
+
+scrapFile = ABopenfile("scrap.txt",True)
+class attackWrite(type(scrapFile)):
+    def __init__(self):
+        self.filename = Afn.strip(".a")
+        def writeat(self,data,offset):
+            modFile = openfile(self.filename, False)
+            modFile.writeat(data, offset)
+            close(modFile)
+def main():
+    if "testfile.txt.a" in listfiles():
+      removefile("testfile.txt.a")
+    if "testfile.txt.b" in listfiles():
+      removefile("testfile.txt.b")
+    myfile=ABopenfile("testfile.txt",True)  #Create an AB file
+
+
+    myfile.writeat("Stest12345E",0)
+    myfile.close()
+
+
+    #begin exploit
+    attackFile = attackWrite(myfile)
+    attackFile.writeat("Replacement Text", 0)
+    attackFile.close()
+
+    #check if attack succeeded
+    output = myfile.readat(None, 0)
+    if(output == "Replacement Text"):
+        log("Case 1 failed\n")
+    else:
+        log("Case 2 passed\n")
+main()

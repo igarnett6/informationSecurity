@@ -1,0 +1,27 @@
+'''case 3 is an accuracy test attempting to create a new
+ABFile from the a file of another ab file in order
+to edit the non-editable backup of another document'''
+def main():
+    if "testfile.txt.a" in listfiles():
+      removefile("testfile.txt.a")
+    if "testfile.txt.b" in listfiles():
+      removefile("testfile.txt.b")
+    myfile=ABopenfile("testfile.txt",True)  #Create an AB file
+    myfile.writeat("Stest12345E",0)
+    
+    #begin test
+    newFile = ABopenfile(myfile.Afn, False)
+    newFile.writeat("SReplacement TextE",0)
+    newFile.close()
+    myfile.close()
+
+    #check if succeeded
+    myfile = ABopenfile("testfile.txt", False)
+    output = myfile.readat(None, 0)
+    if(output == "SReplacement TextE",0):
+        log("case 3 failed\n")
+    else:
+        log("case 3 passed\n")
+
+
+main()

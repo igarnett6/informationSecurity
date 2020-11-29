@@ -22,67 +22,92 @@ class ABFile():
     # globals
     mycontext['debug'] = False
     # local (per object) reference to the underlying file
-    self.Afn = filename+'.a'
-    self.Bfn = filename+'.b'
     self.tfn = filename
+    self.Bfn = filename+'.b'
+    self.Afn = filename+'.a'
     self.aValid = False
     self.bValid = False
-    self.tValid = False
+    # self.tValid = False
+    self.trueFile = None
     self.Afile = None
     self.Bfile = None
-    self.trueFile = None
+    self.len = 0
 
     # make the files and add 'SE' to the readat file...
-    if create:
-      self.Afile = openfile(self.Afn,create)
-      self.Bfile = openfile(self.Bfn,create)
-      self.trueFile = openfile(self.tfn, create)
-      self.Afile.writeat('SE',0)
-      self.Avalid = True
-      self.trueFile.writeat('SE',0)
-      self.tValid = True
+    if (create==True):
+        self.trueFile = openfile(self.tfn, True)
+        self.Afile = openfile(self.Afn, True)
+        self.Bfile = openfile(self.Bfn, True)
+        if(self.Afile.readat(None,0) == ""):
+            self.Afile.writeat("SE",0)
+        if(self.trueFile.readat(None,0) == ""):
+            self.trueFile.writeat("SE",0)
+        if(self.Bfile.readat(None,0)== ""):
+            self.Bfile.writeat("SE",0)
+        temp = self.trueFile.readat(None,0)
+        self.len = len(temp)
+
+
+    elif(create==False):
+        self.trueFile = openfile(self.tfn, False)
+        self.Afile = openfile(self.Afn, False)
+        self.Bfile = openfile(self.Bfn, False)
+        temp = self.trueFile.readat(None,0)
+        self.len = len(temp)
+        if(self.trueFile and self.Afile and self.Bfile):
+            pass
+        else:
+            raise EXCEPTION("No file generated")
     else:
-        raise Exception("Too few arguments. Calls to ABopenfile() must include: ABopenfile(filename, create)")
+        raise EXCEPTION("Not enough arguments")
+
+  def checkValid(self, file):
+    #check for file validity
+    valid = False
+    temp = file.readat(None,0)
+    firstChar = temp[0]
+    lastChar = temp[-1]
+    if((firstChar=='S') and (lastChar=='E')):
+        valid = True
+        return valid
 
   def writeat(self,data,offset):
-
     # Write the requested data to the B file using the sandbox's writeat call
-    self.Bfile.writeat(data,offset)
+    if(offset > self.len+1):
+        self.Bfile.writeat(data,self.len)
+    else:
+        self.Bfile.writeat(data,offset)
 
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
     return self.Afile.readat(bytes,offset)
 
-  def checkValid(self, file):
-      #check for file validity
-      valid = False
-      temp = file.readat(None,0)
-      firstChar = temp[0]
-      lastChar = temp[-1]
-      if((firstChar=='S') and (lastChar=='E')):
-        valid = True
-      return valid
 
 
 
-  def close(self):
+  def close(self):              #raised an index error???
       #check validity
       self.aValid = self.checkValid(self.Afile)
       self.bValid = self.checkValid(self.Bfile)
       toWrite = ""
 
-      if(self.aValid and self.bValid):
-        toWrite = self.Bfile.readat(None,0)
-        self.trueFile.writeat(toWrite,0)
-      else:
+      if(self.bValid):
+          toWrite = self.Bfile.readat(None,0)
+          self.Afile.writeat(toWrite,0)
+          self.trueFile.writeat(toWrite,0)
+      elif (self.aValid and not self.bValid):
           toWrite = self.Afile.readat(None,0)
           self.trueFile.writeat(toWrite,0)
-
-      self.Afile.close()
-      self.Bfile.close()
-      removefile(self.Afile)
-      removefile(self.Bfile)
-      self.trueFile.close()
+      else:
+          # self.trueFile.writeat("SE",0)
+          raise EXCEPTION("File compromised. No accurate backup to write from.")
+      self.len = len(toWrite)
+      try:
+          self.Afile.close()
+          self.Bfile.close()
+          self.trueFile.close()
+      except:
+          raise EXCEPTION("File does not exist")
 
 
 def ABopenfile(filename, create):

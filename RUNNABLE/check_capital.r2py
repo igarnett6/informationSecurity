@@ -1,0 +1,22 @@
+'''case 2 is an accuracy test checking if the monitor successfully
+authenticates valid files only if they begin and end with capital S
+and E'''
+def main():
+    if "testfile.txt.a" in listfiles():
+      removefile("testfile.txt.a")
+    if "testfile.txt.b" in listfiles():
+      removefile("testfile.txt.b")
+    myfile=ABopenfile("testfile.txt",True)  #Create an AB file
+    myfile.writeat("Stest12345E",0)
+    
+    assert ('SE' == myfile.readat(None,0))
+
+    #begin test
+    myfile.writeat("sReplacement Texte", 0)
+    output = myfile.readat(None,0)
+    if(output == "sReplacement Texte"):
+        log("case 2 failed\n")
+    else:
+        log("case 2 passed\n")
+
+main()

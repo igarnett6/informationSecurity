@@ -1,0 +1,26 @@
+'''case 4 attempts to invalidate the backup file
+by swapping it with the written to file.'''
+
+def main():
+    if "testfile.txt.a" in listfiles():
+      removefile("testfile.txt.a")
+    if "testfile.txt.b" in listfiles():
+      removefile("testfile.txt.b")
+    myfile=ABopenfile("testfile.txt",True)  #Create an AB file
+    myfile.writeat("Stest12345E",0)
+
+    #begin test
+    myfile.writeat("Swapped Text",0)
+    temp = myfile.Afn
+    myfile.Afn = myfile.Bfn
+    myfile.Bfn = temp
+    myfile.close()
+    #check test results
+    myfile = ABopenfile("testfile.txt",False)
+    newOutput = myfile.readat(None,0)
+    if(newOutput == "Swapped Text"):
+        log("case 4 failed")
+    else:
+        log("case 4 passed")
+
+main()
