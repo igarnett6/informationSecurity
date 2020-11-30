@@ -32,6 +32,7 @@ class ABFile():
     self.Afile = None
     self.Bfile = None
     self.len = 0
+    self.tempLen = 0
 
     # make the files and add 'SE' to the readat file...
     if (create==True):
@@ -73,10 +74,15 @@ class ABFile():
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
-    if(offset > self.len+1):
-        self.Bfile.writeat(data,self.len)
-    else:
+    temp = self.Bfile.readat(None,0)
+    length = len(temp)
+    if(offset <= length):
         self.Bfile.writeat(data,offset)
+    else:
+        self.Bfile.writeat(data,length)
+
+
+
 
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
